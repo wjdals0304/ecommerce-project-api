@@ -17,3 +17,13 @@ export class CreateUserDto {
   @IsString()
   password_hash: string;
 } 
+
+export class LoginDto {
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  password_hash: string;
+}
