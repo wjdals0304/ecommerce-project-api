@@ -1,9 +1,7 @@
-import { Controller, Get, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, Res } from '@nestjs/common';
 import { HomeService } from './home.service';
 
 @Controller('home')
-@UseGuards(AuthGuard('jwt'))
 export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 
