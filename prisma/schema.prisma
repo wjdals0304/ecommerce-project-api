@@ -50,3 +50,11 @@ model Blog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Eventbanner {
+  id        Int      @id(map: "eventbanner_pkey") @default(autoincrement())
+  imageurl  String
+  size      String
+  createdat DateTime @default(now()) @db.Timestamptz(6)
+}

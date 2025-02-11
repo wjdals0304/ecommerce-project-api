@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class HomeService {
   constructor(private prisma: PrismaService) {}
 
-  async getFlashDeals() {
+  async getFlashDeals() {    
     return this.prisma.product.findMany({
       where: {
         isFlashDeal: true,
@@ -21,6 +21,19 @@ export class HomeService {
         soldCount: true,
       },
     });
+  }
+
+  async getEventBanners() {
+    const largeBanners = await this.prisma.eventbanner.findMany({
+      where: { size: 'large' },
+    });
+
+    const smallBanners = await this.prisma.eventbanner.findMany({
+      where: { size: 'small' },
+      take: 2,
+    });
+
+    return { largeBanners, smallBanners };
   }
 
   async getBestSellersByCategory() {
@@ -117,11 +130,12 @@ export class HomeService {
 
   async getHomeData(res: any) {
     try {
-        const [flashDeals, bestSellers, hotProducts, latestBlogs] = await Promise.all([
+        const [flashDeals, bestSellers, hotProducts, latestBlogs, eventBanners] = await Promise.all([
             this.getFlashDeals(),
             this.getBestSellersByCategory(),
             this.getHotProducts(),
             this.getLatestBlogs(),
+            this.getEventBanners(),
           ]);
       
           return res.status(HttpStatus.OK).json({
@@ -129,6 +143,7 @@ export class HomeService {
             bestSellers,
             hotProducts,
             latestBlogs,
+            eventBanners,
           });
     } catch (error) {
         throw new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR);
