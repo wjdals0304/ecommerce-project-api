@@ -18,20 +18,27 @@ model User {
   updatedAt    DateTime @updatedAt
 }
 
+enum Warranty {
+  ONE_YEAR @map("1년")
+  TWO_YEAR @map("2년 이상")
+  LIFETIME @map("평생")
+}
+
 model Product {
-  id            Int      @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   name          String
   price         Float
   originalPrice Float?
   description   String?
   categoryId    Int
   images        String[]
-  rating        Float    @default(0)
-  stock         Int      @default(0)
-  soldCount     Int      @default(0)
-  isFlashDeal   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  rating        Float     @default(0)
+  stock         Int       @default(0)
+  soldCount     Int       @default(0)
+  isFlashDeal   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  warranty      Warranty? @map("warranty")
 }
 
 model Category {
@@ -58,3 +65,5 @@ model Eventbanner {
   size      String
   createdat DateTime @default(now()) @db.Timestamptz(6)
 }
+
+

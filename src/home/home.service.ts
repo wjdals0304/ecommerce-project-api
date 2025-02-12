@@ -9,6 +9,9 @@ export class HomeService {
     return this.prisma.product.findMany({
       where: {
         isFlashDeal: true,
+        NOT: {
+          categoryId: 0
+        },
       },
       take: 3,
       select: {
@@ -37,17 +40,22 @@ export class HomeService {
   }
 
   async getBestSellersByCategory() {
-    // 모든 카테고리를 가져옵니다
+    // 모든 카테고리를 가져옵니다 (id가 0인 카테고리 제외)
     const categories = await this.prisma.category.findMany({
+      where: {
+        NOT: {
+          id: 0
+        },
+      },
       take: 4,
     });
-
+    
     // 각 카테고리별 베스트셀러 상품을 가져옵니다
     const categoryProducts = await Promise.all(
       categories.map(async (category) => {
         const product = await this.prisma.product.findFirst({
           where: {
-            categoryId: category.id,
+            categoryId: category.id, 
           },
           orderBy: {
             soldCount: 'desc',
@@ -76,6 +84,9 @@ export class HomeService {
         rating: {
           gte: 4.5,
         },
+        NOT: {
+          categoryId: 0
+        },
       },
       orderBy: {
         soldCount: 'desc',
@@ -97,6 +108,9 @@ export class HomeService {
       where: {
         id: {
           in: products.map(p => p.categoryId)
+        },
+        NOT: {
+          id: 0
         }
       }
     });
