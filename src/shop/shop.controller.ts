@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { ShopService } from './shop.service';
 
 @Controller('shop')
@@ -23,5 +23,16 @@ export class ShopController {
     @Query('pageSize') pageSize: number = 10,
   ) {
     return this.shopService.getAllProducts(page, pageSize);
+  }
+
+  @Get(':id')
+  async getProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('tab') tab: string
+  ) {
+    if (tab === 'review') {
+      return this.shopService.getProductReviews(id);
+    }
+    return this.shopService.getProductById(id);
   }
 }
