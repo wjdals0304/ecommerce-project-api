@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -82,6 +82,29 @@ model product_descriptions {
   id         Int    @id(map: "prduct_descriptions_pkey") @default(autoincrement())
   product_id Int
   feature    String
+}
+
+model cart {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  product_id Int
+  quantity   Int       @default(1)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model shipping_address {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  name       String    @db.VarChar(255)
+  phone      String    @db.VarChar(50)
+  address    String
+  city       String    @db.VarChar(100)
+  zipcode    String    @db.VarChar(20)
+  memo       String?
+  is_default Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
 }
 
 enum Warranty {

@@ -7,6 +7,8 @@ import { ShopModule } from './shop/shop.module';
 import { BlogModule } from './blog/blog.module';
 import { SearchController } from './search/search.controller';
 import { SearchModule } from './search/search.module';
+import { CartModule } from './cart/cart.module';
+import { ShippingModule } from './shipping/shipping.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { SearchModule } from './search/search.module';
     ShopModule,
     BlogModule,
     SearchModule,
+    CartModule,
+    ShippingModule,
   ],
   controllers: [SearchController],
 })
