@@ -107,6 +107,28 @@ model shipping_address {
   updated_at DateTime? @default(now()) @db.Timestamp(6)
 }
 
+model order_items {
+  id         Int       @id @default(autoincrement())
+  order_id   Int
+  product_id Int
+  quantity   Int
+  price      Float
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model orders {
+  id                  Int       @id @default(autoincrement())
+  user_id             Int
+  total_amount        Float
+  status              String?   @default("PENDING")
+  shipping_address_id Int
+  payment_method      String
+  payment_status      String?   @default("PENDING")
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+  updated_at          DateTime? @default(now()) @db.Timestamp(6)
+}
+
 enum Warranty {
   ONE_YEAR @map("1년")
   TWO_YEAR @map("2년 이상")

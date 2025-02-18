@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetUser } from '../auth/get-user.decorator';
@@ -12,15 +12,9 @@ export class OrderController {
   @Post()
   createOrder(
     @GetUser() user: JwtPayload,
-    @Body() orderData: {
-      shipping_address_id: number;
-      items: Array<{
-        product_id: number;
-        quantity: number;
-      }>;
-    },
+    @Body() payment_method: string,
   ) {
-    return this.orderService.createOrder(user.userId, orderData);
+    return this.orderService.createOrder(user.userId, payment_method);
   }
 
   @Get()
@@ -31,7 +25,7 @@ export class OrderController {
   @Get(':id')
   getOrderById(
     @GetUser() user: JwtPayload,
-    @Param('id') orderId: number,
+    @Param('id', ParseIntPipe) orderId: number,
   ) {
     return this.orderService.getOrderById(user.userId, orderId);
   }

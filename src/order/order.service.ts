@@ -6,29 +6,43 @@ export class OrderService {
   constructor(private prisma: PrismaService) {}
 
   // 주문 생성
-  async createOrder(userId: number, data: {
-    shipping_address_id: number;
-    items: Array<{
-      product_id: number;
-      quantity: number;
-    }>;
-  }) {
-    try {
+  async createOrder(userId: number,  payment_method: string  ) {
+    try {      
+      const defaultAddress = await this.prisma.shipping_address.findFirst({
+        where: {
+          user_id: userId,
+          is_default: true
+        }
+      });
+
+      if (!defaultAddress) {
+        throw new BadRequestException('Shipping address is required');
+      }
+
       // 장바구니 아이템 조회
       const cartItems = await this.prisma.cart.findMany({
         where: { user_id: userId },
-        include: {
-          product: true,
-        },
       });
 
       if (cartItems.length === 0) {
         throw new BadRequestException('Cart is empty');
       }
 
+      // 상품 정보 조회
+      const productIds = cartItems.map(item => item.product_id);
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: productIds
+          }
+        }
+      });
+
+      // 상품 정보 매핑
+      const productMap = new Map(products.map(p => [p.id, p]));
       // 총 금액 계산
       const totalAmount = cartItems.reduce(
-        (sum, item) => sum + (item.product.price * item.quantity),
+        (sum, item) => sum + (productMap.get(item.product_id)?.price || 0) * item.quantity,
         0
       );
 
@@ -38,9 +52,11 @@ export class OrderService {
         const newOrder = await prisma.orders.create({
           data: {
             user_id: userId,
-            shipping_address_id: data.shipping_address_id,
+            shipping_address_id: defaultAddress.id,
             total_amount: totalAmount,
             status: 'PENDING',
+            payment_method: payment_method,
+            payment_status: 'PENDING',
           },
         });
 
@@ -50,7 +66,7 @@ export class OrderService {
             order_id: newOrder.id,
             product_id: item.product_id,
             quantity: item.quantity,
-            price: item.product.price,
+            price: productMap.get(item.product_id)?.price || 0,
           })),
         });
 
@@ -62,7 +78,7 @@ export class OrderService {
         return newOrder;
       });
 
-      return order;
+      return this.getOrderById(userId, order.id);
     } catch (error) {
       console.error('Error in createOrder:', error);
       throw new Error('Failed to create order');
@@ -74,25 +90,44 @@ export class OrderService {
     try {
       const orders = await this.prisma.orders.findMany({
         where: { user_id: userId },
-        include: {
-          order_items: {
-            include: {
-              product: {
-                select: {
-                  name: true,
-                  images: true,
-                },
-              },
-            },
-          },
-          shipping_address: true,
-        },
         orderBy: {
           created_at: 'desc',
         },
       });
 
-      return orders;
+      // 주문 아이템 조회
+      const ordersWithItems = await Promise.all(
+        orders.map(async (order) => {
+          const items = await this.prisma.order_items.findMany({
+            where: { order_id: order.id },
+          });
+
+          const products = await this.prisma.product.findMany({
+            where: {
+              id: {
+                in: items.map(item => item.product_id)
+              }
+            },
+            select: {
+              id: true,
+              name: true,
+              images: true,
+            }
+          });
+
+          const productMap = new Map(products.map(p => [p.id, p]));
+
+          return {
+            ...order,
+            items: items.map(item => ({
+              ...item,
+              product: productMap.get(item.product_id)
+            }))
+          };
+        })
+      );
+
+      return ordersWithItems;
     } catch (error) {
       console.error('Error in getOrders:', error);
       throw new Error('Failed to get orders');
@@ -107,21 +142,33 @@ export class OrderService {
           id: orderId,
           user_id: userId,
         },
-        include: {
-          order_items: {
-            include: {
-              product: true,
-            },
-          },
-          shipping_address: true,
-        },
       });
 
       if (!order) {
         throw new NotFoundException('Order not found');
       }
 
-      return order;
+      const items = await this.prisma.order_items.findMany({
+        where: { order_id: orderId },
+      });
+
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: items.map(item => item.product_id)
+          }
+        }
+      });
+
+      const productMap = new Map(products.map(p => [p.id, p]));
+
+      return {
+        ...order,
+        items: items.map(item => ({
+          ...item,
+          product: productMap.get(item.product_id)
+        }))
+      };
     } catch (error) {
       console.error('Error in getOrderById:', error);
       throw new Error('Failed to get order details');
