@@ -12,7 +12,7 @@ export class OrderController {
   @Post()
   createOrder(
     @GetUser() user: JwtPayload,
-    @Body() payment_method: string,
+    @Body('payment_method') payment_method: string,
   ) {
     return this.orderService.createOrder(user.userId, payment_method);
   }

@@ -6,7 +6,7 @@ export class OrderService {
   constructor(private prisma: PrismaService) {}
 
   // 주문 생성
-  async createOrder(userId: number,  payment_method: string  ) {
+  async createOrder(userId: number, payment_method: string) {
     try {      
       const defaultAddress = await this.prisma.shipping_address.findFirst({
         where: {
@@ -14,7 +14,6 @@ export class OrderService {
           is_default: true
         }
       });
-
       if (!defaultAddress) {
         throw new BadRequestException('Shipping address is required');
       }

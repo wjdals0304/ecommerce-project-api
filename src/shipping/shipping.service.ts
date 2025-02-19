@@ -34,7 +34,7 @@ export class ShippingService {
           data: { is_default: false },
         });
       }
-
+      addressData.is_default = true;
       return await this.prisma.shipping_address.create({
         data: {
           user_id: userId,
