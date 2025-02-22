@@ -26,6 +26,7 @@ export class AuthService {
       const token = this.jwtService.sign(payload);
       res.setHeader('Access-Control-Expose-Headers', 'Authorization');
       res.setHeader('Authorization', `Bearer ${token}`);
+      res.setHeader('set-cookie', `jwt=${token};  Path=/; Max-Age=3600;`);
 
       return res.status(HttpStatus.OK).json({
         user: user
@@ -65,6 +66,7 @@ export class AuthService {
       const token = this.jwtService.sign(payload);
       res.setHeader('Access-Control-Expose-Headers', 'Authorization');
       res.setHeader('Authorization', `Bearer ${token}`);
+      res.setHeader('set-cookie', `jwt=${token}; Path=/; Max-Age=3600;`);
 
       return res.status(HttpStatus.OK).json({
         user: user

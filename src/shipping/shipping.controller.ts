@@ -9,9 +9,9 @@ import { JwtPayload } from '../auth/jwt-payload.interface';
 export class ShippingController {
   constructor(private readonly shippingService: ShippingService) {}
 
-  @Get('addresses')
-  getAddresses(@GetUser() user: JwtPayload) {
-    return this.shippingService.getAddresses(user.userId);
+  @Get('address')
+  getAddress(@GetUser() user: JwtPayload) {
+    return this.shippingService.getAddress(user.userId);
   }
 
   @Post('address')

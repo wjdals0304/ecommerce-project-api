@@ -5,11 +5,11 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ShippingService {
   constructor(private prisma: PrismaService) {}
 
-  async getAddresses(userId: number) {
+  async getAddress(userId: number) {
     try {
-      return await this.prisma.shipping_address.findMany({
+      return await this.prisma.shipping_address.findFirst({
         where: { user_id: userId },
-        orderBy: { is_default: 'desc' },
+        orderBy: { created_at: 'desc' },
       });
     } catch (error) {
       console.error('Error in getAddresses:', error);
