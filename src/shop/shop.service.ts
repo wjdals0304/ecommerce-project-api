@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Warranty } from '@prisma/client';
+import { Prisma, Warranty } from '@prisma/client';
 
 @Injectable()
 export class ShopService {
@@ -8,9 +8,7 @@ export class ShopService {
 
   async getFilteredProducts(categoryId: number, priceMin: number, priceMax: number, warranty: string, page: number, pageSize: number) {
     const skip = (page - 1) * pageSize;
-    
-    console.log('Filter Params:', { categoryId, priceMin, priceMax, warranty, page, pageSize });  // 파라미터 로그
-    
+        
     const whereCondition: any = {
       price: {
         gte: priceMin || 0,
@@ -189,5 +187,50 @@ export class ShopService {
       console.error('Error in getProductReviews:', error);
       throw new NotFoundException('Product not found');
     }
+  }
+
+  async searchProducts(
+    keyword: string,
+    page: number = 1,
+    pageSize: number = 10
+  ) {
+    const skip = (page - 1) * pageSize;
+    const whereCondition: Prisma.productWhereInput = {
+      name: {
+        contains: keyword,
+        mode: Prisma.QueryMode.insensitive,
+      }
+    };
+
+    // 전체 검색 결과 수 조회
+    const totalItems = await this.prisma.product.count({
+      where: whereCondition,
+    });
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // 검색 결과 조회
+    const products = await this.prisma.product.findMany({
+      where: whereCondition,
+      skip,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        images: true,
+        rating: true,
+        soldCount: true,
+        description: true,
+      },
+      orderBy: {
+        soldCount: 'desc',
+      },
+    });
+
+    return {
+      products,
+      totalPages
+    };
   }
 }

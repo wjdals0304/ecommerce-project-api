@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, BadRequestException } from '@nestjs/common';
 import { ShopService } from './shop.service';
 
 @Controller('shop')
@@ -34,5 +34,7 @@ export class ShopController {
       return this.shopService.getProductReviews(id);
     }
     return this.shopService.getProductById(id);
-  }
+  } 
+
+
 }
