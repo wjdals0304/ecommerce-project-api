@@ -23,4 +23,9 @@ export class AuthController {
   async signInWithEmail(@Body() loginDto: LoginDto, @Res() res: Response) {
     return this.authService.signInWithEmail(loginDto, res);
   }
+
+  @Post('refresh')
+  async refreshAccessToken(@Req() req, @Res() res: Response) {
+    return this.authService.refreshAccessToken(req, res);
+  }
 } 

@@ -23,10 +23,12 @@ export class AuthService {
       });
 
       const payload = { email: user.email, sub: user.id };
-      const token = this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
       res.setHeader('Access-Control-Expose-Headers', 'Authorization');
-      res.setHeader('Authorization', `Bearer ${token}`);
-      res.setHeader('set-cookie', `jwt=${token};  Path=/; Max-Age=3600;`);
+      res.setHeader('Authorization', `Bearer ${accessToken}`);
+      res.setHeader('set-cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800;${process.env.NODE_ENV === 'production' ? ' Secure; SameSite=None;' : ''}`);
 
       return res.status(HttpStatus.OK).json({
         user: user
@@ -63,10 +65,12 @@ export class AuthService {
       } 
   
       const payload = { email: user.email, sub: user.id };
-      const token = this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
       res.setHeader('Access-Control-Expose-Headers', 'Authorization');
-      res.setHeader('Authorization', `Bearer ${token}`);
-      res.setHeader('set-cookie', `jwt=${token}; Path=/; Max-Age=3600;`);
+      res.setHeader('Authorization', `Bearer ${accessToken}`);
+      res.setHeader('set-cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800;${process.env.NODE_ENV === 'production' ? ' Secure; SameSite=None;' : ''}`);
 
       return res.status(HttpStatus.OK).json({
         user: user
@@ -80,5 +84,35 @@ export class AuthService {
       }
     }
   
+  }
+
+  async refreshAccessToken(req: any, res: any) {
+    try {
+      const refreshToken = req.headers.cookie.split('; ').find(row => row.startsWith('refreshToken=')).split('=')[1];
+      console.log('aaa')
+      console.log(refreshToken)
+      if (!refreshToken) {
+        throw new HttpException('Refresh token not found', HttpStatus.UNAUTHORIZED);
+      }
+
+      const payload = this.jwtService.verify(refreshToken);
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
+      if (!user) {
+        throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      }
+
+      const newAccessToken = this.jwtService.sign({ email: user.email, sub: user.id }, { expiresIn: '1h' });
+
+      res.setHeader('Access-Control-Expose-Headers', 'Authorization');
+      res.setHeader('Authorization', `Bearer ${newAccessToken}`);
+
+      return res.status(HttpStatus.OK).json({
+        accessToken: newAccessToken
+      });
+    } catch (error) {
+      throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+    }
   }
 }
