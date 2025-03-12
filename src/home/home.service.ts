@@ -142,14 +142,36 @@ export class HomeService {
     });
   }
 
+  async getCategories() {
+   
+    const categories = await this.prisma.category.findMany({
+      where: {
+        NOT: {
+          id: 0
+        }
+      },
+      take: 5,
+      orderBy: {
+        id: 'asc',
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return categories;
+  }
+
   async getHomeData(res: any) {
     try {
-        const [flashDeals, bestSellers, hotProducts, latestBlogs, eventBanners] = await Promise.all([
+        const [flashDeals, bestSellers, hotProducts, latestBlogs, eventBanners, categories] = await Promise.all([
             this.getFlashDeals(),
             this.getBestSellersByCategory(),
             this.getHotProducts(),
             this.getLatestBlogs(),
             this.getEventBanners(),
+            this.getCategories(),
           ]);
       
           return res.status(HttpStatus.OK).json({
@@ -158,6 +180,7 @@ export class HomeService {
             hotProducts,
             latestBlogs,
             eventBanners,
+            categories,
           });
     } catch (error) {
         throw new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR);
