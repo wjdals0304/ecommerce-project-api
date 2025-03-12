@@ -28,4 +28,14 @@ export class AuthController {
   async refreshAccessToken(@Req() req, @Res() res: Response) {
     return this.authService.refreshAccessToken(req, res);
   }
+
+  @Get('me')
+  async getCurrentUser(@Req() req) {
+    return this.authService.getCurrentUser(req);
+  }
+
+  @Post('logout')
+  async logout(@Res() res: Response) {
+    return this.authService.logout(res);
+  }
 } 

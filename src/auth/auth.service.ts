@@ -55,7 +55,6 @@ export class AuthService {
   }
 
   async signInWithEmail(loginDto: LoginDto, res: any) {
-
     try {
       const user = await this.prisma.user.findUnique({
         where: { email: loginDto.email},
@@ -83,14 +82,11 @@ export class AuthService {
         throw new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
-  
   }
 
   async refreshAccessToken(req: any, res: any) {
     try {
       const refreshToken = req.headers.cookie.split('; ').find(row => row.startsWith('refreshToken=')).split('=')[1];
-      console.log('aaa')
-      console.log(refreshToken)
       if (!refreshToken) {
         throw new HttpException('Refresh token not found', HttpStatus.UNAUTHORIZED);
       }
@@ -113,6 +109,58 @@ export class AuthService {
       });
     } catch (error) {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  async getCurrentUser(req: any) {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        throw new HttpException('Authorization header not found', HttpStatus.UNAUTHORIZED);
+      }
+
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        throw new HttpException('Token not found', HttpStatus.UNAUTHORIZED);
+      }
+
+      const payload = this.jwtService.verify(token);
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phoneNumber: true,
+        },
+      });
+
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      return user;
+    } catch (error) {
+      if (error.name === 'JsonWebTokenError') {
+        throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      }
+      if (error.status === HttpStatus.NOT_FOUND) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      throw new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async logout(res: any) {
+    try {
+      res.setHeader('set-cookie', 'refreshToken=; HttpOnly; Path=/; Max-Age=0');
+      res.clearCookie('refreshToken');
+      
+      return res.status(HttpStatus.OK).json({
+        message: '로그아웃되었습니다.'
+      });
+    } catch (error) {
+      throw new HttpException('로그아웃 중 오류가 발생했습니다.', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
