@@ -7,22 +7,14 @@ export class ShopController {
 
   @Get()
   async getProducts(
-    @Query('categoryId') categoryId: number,
-    @Query('priceMin') priceMin: number,
-    @Query('priceMax') priceMax: number,
-    @Query('warranty') warranty: string,
+    @Query('categoryId') categoryId?: number,
+    @Query('priceMin') priceMin?: number,
+    @Query('priceMax') priceMax?: number,
+    @Query('warranty') warranty?: string,
     @Query('page') page: number = 1,  
     @Query('pageSize') pageSize: number = 10,
   ) {
     return this.shopService.getFilteredProducts(categoryId, priceMin, priceMax, warranty, page, pageSize);
-  }
-
-  @Get('all')
-  async getAllProducts(
-    @Query('page') page: number = 1,
-    @Query('pageSize') pageSize: number = 10,
-  ) {
-    return this.shopService.getAllProducts(page, pageSize);
   }
 
   @Get(':id')
@@ -34,7 +26,5 @@ export class ShopController {
       return this.shopService.getProductReviews(id);
     }
     return this.shopService.getProductById(id);
-  } 
-
-
+  }
 }

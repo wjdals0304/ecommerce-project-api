@@ -13,10 +13,9 @@ export class AuthController {
     return this.authService.signUpWithEmail(createUserDto, res);
   }
 
-  @Get('signup/google')
-  @UseGuards(AuthGuard('google'))
-  async signUpWithGoogle(@Req() req) {
-    return this.authService.signUpWithGoogle(req.user);
+  @Post('signup/google')
+  async signUpWithGoogle(@Body() tokenDto: { access_token: string, provider: string }, @Res() res: Response) {
+    return this.authService.signUpWithGoogle(tokenDto, res);
   }
 
   @Post('signin/email')

@@ -6,27 +6,33 @@ import { Prisma, Warranty } from '@prisma/client';
 export class ShopService {
   constructor(private prisma: PrismaService) {}
 
-  async getFilteredProducts(categoryId: number, priceMin: number, priceMax: number, warranty: string, page: number, pageSize: number) {
+  async getFilteredProducts(
+    categoryId?: number,
+    priceMin?: number,
+    priceMax?: number,
+    warranty?: string,
+    page: number = 1,
+    pageSize: number = 10
+  ) {
     const skip = (page - 1) * pageSize;
         
-    const whereCondition: any = {
-      price: {
-        gte: priceMin || 0,
-        lte: priceMax || 10000,
-      },
-    };
+    const whereCondition: any = {};
 
-    // categoryId가 0이 아닌 경우에만 조건 추가
-    if (categoryId !== 0) {
+    if (priceMin !== undefined || priceMax !== undefined) {
+      whereCondition.price = {
+        gte: priceMin || 0,
+        lte: priceMax || Number.MAX_SAFE_INTEGER,
+      };
+    }
+
+    if (categoryId) {
       whereCondition.categoryId = categoryId;
     }
 
-    // warranty가 있는 경우에만 조건 추가
-    if (warranty !== 'ALL') {
+    if (warranty && warranty !== 'ALL') {
       whereCondition.warranty = warranty as Warranty;
     }
 
-    // 전체 상품 수 조회
     const totalItems = await this.prisma.product.count({
       where: whereCondition
     });
@@ -61,42 +67,6 @@ export class ShopService {
       products, 
       categories,
       totalPages
-    };
-  }
-
-  async getAllProducts(page: number = 1, pageSize: number = 10) {
-    const skip = (page - 1) * pageSize;
-
-    const totalItems = await this.prisma.product.count();
-    const totalPages = Math.ceil(totalItems / pageSize);
-
-    const products = await this.prisma.product.findMany({
-      skip,
-      take: pageSize,
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        images: true,
-        rating: true,
-        soldCount: true,
-      },
-    });
-
-    const categories = await this.prisma.category.findMany({
-      orderBy: {
-        id: 'asc',
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-    return { 
-      products, 
-      categories,
-      totalPages 
     };
   }
 
