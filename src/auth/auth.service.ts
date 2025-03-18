@@ -47,40 +47,31 @@ export class AuthService {
         throw new HttpException('액세스 토큰이 제공되지 않았습니다.', HttpStatus.BAD_REQUEST);
       }
 
-      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        method: 'GET',
+      const supabaseUserResponse = await fetch('https://pthoxfolwfcdmudnqtag.supabase.co/auth/v1/user', {
         headers: {
           'Authorization': `Bearer ${tokenDto.access_token}`,
-          'Accept': 'application/json',
+          'apikey': process.env.SUPABASE_KEY || '',
         },
       });
 
-      if (!response.ok) {
-        
-        if (response.status === 401) {
-          throw new HttpException(
-            '구글 인증에 실패했습니다. 다시 로그인해주세요.',
-            HttpStatus.UNAUTHORIZED
-          );
-        }
-        
+      if (!supabaseUserResponse.ok) {
         throw new HttpException(
-          '구글 API 호출 중 오류가 발생했습니다.',
-          HttpStatus.INTERNAL_SERVER_ERROR
+          'Supabase 인증에 실패했습니다.',
+          HttpStatus.UNAUTHORIZED
         );
       }
 
-      const googleUser = await response.json();
+      const supabaseUser = await supabaseUserResponse.json();
 
-      if (!googleUser.email) {
+      if (!supabaseUser.email) {
         throw new HttpException(
-          '구글 계정에서 이메일을 가져올 수 없습니다.',
+          '사용자 이메일을 가져올 수 없습니다.',
           HttpStatus.BAD_REQUEST
         );
       }
 
       const existingUser = await this.prisma.user.findUnique({
-        where: { email: googleUser.email },
+        where: { email: supabaseUser.email },
       });
 
       if (existingUser) {
@@ -89,8 +80,8 @@ export class AuthService {
 
       const user = await this.prisma.user.create({
         data: {
-          fullName: googleUser.name || '',
-          email: googleUser.email,
+          fullName: supabaseUser.user_metadata?.full_name || '',
+          email: supabaseUser.email,
           phoneNumber: '',
           passwordHash: '',
           signupMethod: 'google',
