@@ -48,6 +48,11 @@ export class HomeService {
         },
       },
       take: 4,
+      select: {
+        id: true,
+        name: true,
+        image: true,
+      },
     });
     
     // 각 카테고리별 베스트셀러 상품을 가져옵니다
@@ -55,7 +60,7 @@ export class HomeService {
       categories.map(async (category) => {
         const product = await this.prisma.product.findFirst({
           where: {
-            categoryId: category.id, 
+            categoryId: category.id,
           },
           orderBy: {
             soldCount: 'desc',
@@ -70,6 +75,7 @@ export class HomeService {
         return {
           categoryId: category.id,
           categoryName: category.name,
+          categoryImage: category.image,
           product,
         };
       }),
@@ -143,7 +149,6 @@ export class HomeService {
   }
 
   async getCategories() {
-   
     const categories = await this.prisma.category.findMany({
       where: {
         NOT: {
@@ -157,6 +162,7 @@ export class HomeService {
       select: {
         id: true,
         name: true,
+        image: true,
       },
     });
 
