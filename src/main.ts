@@ -2,13 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import * as express from 'express';
 
+const expressApp = express();
 let app: NestExpressApplication;
 
 async function bootstrap() {
   try {
     if (!app) {
-      app = await NestFactory.create<NestExpressApplication>(AppModule);
+      app = await NestFactory.create<NestExpressApplication>(
+        AppModule,
+        new ExpressAdapter(expressApp)
+      );
       
       app.enableCors({
         origin: [
@@ -32,7 +38,7 @@ async function bootstrap() {
     }
 
     if (process.env.VERCEL) {
-      return app.getHttpServer();
+      return expressApp;
     }
 
     const port = process.env.PORT || 3001;
@@ -49,7 +55,7 @@ export default async function handler(req: any, res: any) {
   try {
     console.log('Incoming request:', req.method, req.url);
     
-    const server = await bootstrap();
+    const server = await bootstrap() as express.Express;
     console.log('Server initialized successfully');
     
     return server(req, res);
