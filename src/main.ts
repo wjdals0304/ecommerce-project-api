@@ -17,13 +17,21 @@ async function bootstrap() {
     });
     
     app.enableCors({
-      origin: [
-        'https://ecommerce-project-liart-one.vercel.app',
-        'http://localhost:3000'
-      ],
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      origin: true, // 모든 origin 허용
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
       credentials: true,
-      allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
+      preflightContinue: false,
+      optionsSuccessStatus: 204
+    });
+
+    // 보안 헤더 설정
+    app.use((req, res, next) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      next();
     });
 
     app.useGlobalPipes(
@@ -51,6 +59,18 @@ async function bootstrap() {
 
 export default async function handler(req: any, res: any) {
   try {
+    // CORS 헤더 추가
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
+    // OPTIONS 요청 처리
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+
     const server = await bootstrap();
     return server(req, res);
   } catch (error) {
