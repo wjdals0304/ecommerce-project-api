@@ -5,11 +5,11 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule);
-    
     app.enableCors({
-      origin: 'http://localhost:3000',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      origin: ['https://ecommerce-project-liart-one.vercel.app/', 'http://localhost:3000'],
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
+      allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
     });
 
     app.useGlobalPipes(
@@ -19,8 +19,10 @@ async function bootstrap() {
         transform: true,
       }),
     );
-    await app.listen(3001);
-    console.log('Application is running on: http://localhost:3001');
+
+    const port = process.env.PORT || 3001;
+    await app.listen(port);
+    console.log(`Application is running on port ${port}`);
   } catch (error) {
     console.error('Failed to start application:', error);
     process.exit(1);
