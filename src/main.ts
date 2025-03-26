@@ -24,27 +24,27 @@ async function bootstrap() {
     })
   );
 
+  if (process.env.VERCEL) {
+    await app.init();
+    return app.getHttpServer();
+  }
+
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`Application is running on port ${port}`);
-  return app;
+}
+
+let app: any;
+
+// Vercel 서버리스 환경을 위한 핸들러
+export default async function handler(req: any, res: any) {
+  if (!app) {
+    app = await bootstrap();
+  }
+  return app(req, res);
 }
 
 // 로컬 환경에서 서버 실행
 if (!process.env.VERCEL) {
   bootstrap();
-}
-
-// Vercel 서버리스 환경을 위한 핸들러
-let cachedServer: unknown;
-
-export default async function handler(req: unknown, res: unknown): Promise<void> {
-  if (!cachedServer) {
-    const app = await bootstrap();
-    cachedServer = app.getHttpServer();
-  }
-  if (cachedServer && typeof cachedServer === 'function') {
-    return cachedServer(req, res);
-  }
-  throw new Error('Server initialization failed');
 }
