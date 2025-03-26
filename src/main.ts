@@ -16,8 +16,19 @@ async function bootstrap() {
       bufferLogs: true
     });
     
+    const allowedOrigins = [
+      'https://ecommerce-project-liart-one.vercel.app',
+      'http://localhost:3000'
+    ];
+
     app.enableCors({
-      origin: true, // 모든 origin 허용
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
       credentials: true,
@@ -27,10 +38,13 @@ async function bootstrap() {
 
     // 보안 헤더 설정
     app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
-      res.header('Access-Control-Allow-Credentials', 'true');
+      const origin = req.headers.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+        res.header('Access-Control-Allow-Credentials', 'true');
+      }
       next();
     });
 
@@ -59,11 +73,18 @@ async function bootstrap() {
 
 export default async function handler(req: any, res: any) {
   try {
-    // CORS 헤더 추가
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      'https://ecommerce-project-liart-one.vercel.app',
+      'http://localhost:3000'
+    ];
+
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     
     // OPTIONS 요청 처리
     if (req.method === 'OPTIONS') {
