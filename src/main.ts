@@ -1,49 +1,50 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
-
-const server = express();
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  try {
-    const app = await NestFactory.create(
-      AppModule,
-      new ExpressAdapter(server),
-    );
-    
-    app.enableCors({
-      origin: [
-        'https://ecommerce-project-liart-one.vercel.app',
-        'http://localhost:3000'
-      ],
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
-    });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
+  app.enableCors({
+    origin: [
+      'https://ecommerce-project-liart-one.vercel.app',
+      'http://localhost:3000'
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
+  });
 
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true
+    })
+  );
 
-    await app.init();
-    return app.getHttpAdapter().getInstance();
-  } catch (error) {
-    console.error('Failed to start application:', error);
-    process.exit(1);
-  }
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+  console.log(`Application is running on port ${port}`);
+  return app;
 }
 
-let cachedServer: any;
+// 로컬 환경에서 서버 실행
+if (!process.env.VERCEL) {
+  bootstrap();
+}
 
-export default async function handler(req: any, res: any) {
+// Vercel 서버리스 환경을 위한 핸들러
+let cachedServer: unknown;
+
+export default async function handler(req: unknown, res: unknown): Promise<void> {
   if (!cachedServer) {
-    cachedServer = await bootstrap();
+    const app = await bootstrap();
+    cachedServer = app.getHttpServer();
   }
-  return cachedServer(req, res);
+  if (cachedServer && typeof cachedServer === 'function') {
+    return cachedServer(req, res);
+  }
+  throw new Error('Server initialization failed');
 }
