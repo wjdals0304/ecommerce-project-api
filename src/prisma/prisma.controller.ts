@@ -1,12 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+import { Controller, Get } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
 
-@Controller('prisma')
+@Controller("prisma")
 export class PrismaController {
   constructor(private prisma: PrismaService) {}
 
-  @Get('test')
+  @Get("test")
   async testConnection() {
     return this.prisma.testConnection();
   }
-} 
+}

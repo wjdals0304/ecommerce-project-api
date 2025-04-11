@@ -1,16 +1,16 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class HomeService {
   constructor(private prisma: PrismaService) {}
 
-  async getFlashDeals() {    
+  async getFlashDeals() {
     return this.prisma.product.findMany({
       where: {
         isFlashDeal: true,
         NOT: {
-          categoryId: 0
+          categoryId: 0,
         },
       },
       take: 3,
@@ -28,11 +28,11 @@ export class HomeService {
 
   async getEventBanners() {
     const largeBanners = await this.prisma.eventbanner.findMany({
-      where: { size: 'large' },
+      where: { size: "large" },
     });
 
     const smallBanners = await this.prisma.eventbanner.findMany({
-      where: { size: 'small' },
+      where: { size: "small" },
       take: 2,
     });
 
@@ -44,7 +44,7 @@ export class HomeService {
     const categories = await this.prisma.category.findMany({
       where: {
         NOT: {
-          id: 0
+          id: 0,
         },
       },
       take: 4,
@@ -54,7 +54,7 @@ export class HomeService {
         image: true,
       },
     });
-    
+
     // 각 카테고리별 베스트셀러 상품을 가져옵니다
     const categoryProducts = await Promise.all(
       categories.map(async (category) => {
@@ -63,7 +63,7 @@ export class HomeService {
             categoryId: category.id,
           },
           orderBy: {
-            soldCount: 'desc',
+            soldCount: "desc",
           },
           select: {
             id: true,
@@ -91,11 +91,11 @@ export class HomeService {
           gte: 4.5,
         },
         NOT: {
-          categoryId: 0
+          categoryId: 0,
         },
       },
       orderBy: {
-        soldCount: 'desc',
+        soldCount: "desc",
       },
       take: 4,
       select: {
@@ -113,30 +113,33 @@ export class HomeService {
     const categories = await this.prisma.category.findMany({
       where: {
         id: {
-          in: products.map(p => p.categoryId)
+          in: products.map((p) => p.categoryId),
         },
         NOT: {
-          id: 0
-        }
-      }
+          id: 0,
+        },
+      },
     });
 
     // 카테고리 매핑을 만듭니다
-    const categoryMap = categories.reduce((acc, cat) => ({
-      ...acc,
-      [cat.id]: cat.name
-    }), {});
+    const categoryMap = categories.reduce(
+      (acc, cat) => ({
+        ...acc,
+        [cat.id]: cat.name,
+      }),
+      {},
+    );
 
-    return products.map(product => ({
+    return products.map((product) => ({
       ...product,
-      categoryName: categoryMap[product.categoryId]
+      categoryName: categoryMap[product.categoryId],
     }));
   }
 
   async getLatestBlogs() {
     return this.prisma.blog.findMany({
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       take: 3,
       select: {
@@ -152,12 +155,12 @@ export class HomeService {
     const categories = await this.prisma.category.findMany({
       where: {
         NOT: {
-          id: 0
-        }
+          id: 0,
+        },
       },
       take: 5,
       orderBy: {
-        id: 'asc',
+        id: "asc",
       },
       select: {
         id: true,
@@ -171,25 +174,35 @@ export class HomeService {
 
   async getHomeData(res: any) {
     try {
-        const [flashDeals, bestSellers, hotProducts, latestBlogs, eventBanners, categories] = await Promise.all([
-            this.getFlashDeals(),
-            this.getBestSellersByCategory(),
-            this.getHotProducts(),
-            this.getLatestBlogs(),
-            this.getEventBanners(),
-            this.getCategories(),
-          ]);
-      
-          return res.status(HttpStatus.OK).json({
-            flashDeals,
-            bestSellers,
-            hotProducts,
-            latestBlogs,
-            eventBanners,
-            categories,
-          });
-    } catch (error) {
-        throw new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR);
+      const [
+        flashDeals,
+        bestSellers,
+        hotProducts,
+        latestBlogs,
+        eventBanners,
+        categories,
+      ] = await Promise.all([
+        this.getFlashDeals(),
+        this.getBestSellersByCategory(),
+        this.getHotProducts(),
+        this.getLatestBlogs(),
+        this.getEventBanners(),
+        this.getCategories(),
+      ]);
+
+      return res.status(HttpStatus.OK).json({
+        flashDeals,
+        bestSellers,
+        hotProducts,
+        latestBlogs,
+        eventBanners,
+        categories,
+      });
+    } catch {
+      throw new HttpException(
+        "Database error",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
-} 
+}

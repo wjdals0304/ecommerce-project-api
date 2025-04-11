@@ -1,7 +1,7 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import { HomeService } from './home.service';
+import { Controller, Get, Res } from "@nestjs/common";
+import { HomeService } from "./home.service";
 
-@Controller('home')
+@Controller("home")
 export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 
@@ -9,4 +9,4 @@ export class HomeController {
   getHomeData(@Res() res: Response) {
     return this.homeService.getHomeData(res);
   }
-} 
+}

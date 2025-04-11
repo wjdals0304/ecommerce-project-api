@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class ShippingService {
@@ -9,23 +9,26 @@ export class ShippingService {
     try {
       return await this.prisma.shipping_address.findFirst({
         where: { user_id: userId },
-        orderBy: { created_at: 'desc' },
+        orderBy: { created_at: "desc" },
       });
     } catch (error) {
-      console.error('Error in getAddresses:', error);
-      throw new Error('Failed to get shipping addresses');
+      console.error("Error in getAddresses:", error);
+      throw new Error("Failed to get shipping addresses");
     }
   }
 
-  async addAddress(userId: number, addressData: {
-    name: string;
-    phone: string;
-    address: string;
-    city: string;
-    zipcode: string;
-    memo?: string;
-    is_default?: boolean;
-  }) {
+  async addAddress(
+    userId: number,
+    addressData: {
+      name: string;
+      phone: string;
+      address: string;
+      city: string;
+      zipcode: string;
+      memo?: string;
+      is_default?: boolean;
+    },
+  ) {
     try {
       if (addressData.is_default) {
         // 기존 기본 배송지 해제
@@ -42,27 +45,31 @@ export class ShippingService {
         },
       });
     } catch (error) {
-      console.error('Error in addAddress:', error);
-      throw new Error('Failed to add shipping address');
+      console.error("Error in addAddress:", error);
+      throw new Error("Failed to add shipping address");
     }
   }
 
-  async updateAddress(userId: number, addressId: number, addressData: {
-    name?: string;
-    phone?: string;
-    address?: string;
-    city?: string;
-    zipcode?: string;
-    memo?: string;
-    is_default?: boolean;
-  }) {
+  async updateAddress(
+    userId: number,
+    addressId: number,
+    addressData: {
+      name?: string;
+      phone?: string;
+      address?: string;
+      city?: string;
+      zipcode?: string;
+      memo?: string;
+      is_default?: boolean;
+    },
+  ) {
     try {
       const address = await this.prisma.shipping_address.findFirst({
         where: { id: addressId, user_id: userId },
       });
 
       if (!address) {
-        throw new NotFoundException('Address not found');
+        throw new NotFoundException("Address not found");
       }
 
       if (addressData.is_default) {
@@ -77,8 +84,8 @@ export class ShippingService {
         data: addressData,
       });
     } catch (error) {
-      console.error('Error in updateAddress:', error);
-      throw new Error('Failed to update shipping address');
+      console.error("Error in updateAddress:", error);
+      throw new Error("Failed to update shipping address");
     }
   }
 
@@ -89,15 +96,15 @@ export class ShippingService {
       });
 
       if (!address) {
-        throw new NotFoundException('Address not found');
+        throw new NotFoundException("Address not found");
       }
 
       return await this.prisma.shipping_address.delete({
         where: { id: addressId },
       });
     } catch (error) {
-      console.error('Error in deleteAddress:', error);
-      throw new Error('Failed to delete shipping address');
+      console.error("Error in deleteAddress:", error);
+      throw new Error("Failed to delete shipping address");
     }
   }
-} 
+}

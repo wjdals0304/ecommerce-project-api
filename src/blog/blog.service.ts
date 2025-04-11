@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class BlogService {
@@ -15,7 +15,7 @@ export class BlogService {
       skip,
       take: pageSize,
       orderBy: {
-        createdAt: 'desc'
+        createdAt: "desc",
       },
       select: {
         id: true,
@@ -26,9 +26,9 @@ export class BlogService {
       },
     });
 
-    return { 
+    return {
       blogs,
-      totalPages
+      totalPages,
     };
   }
 
@@ -36,7 +36,7 @@ export class BlogService {
     const recentPosts = await this.prisma.blog.findMany({
       take: limit,
       orderBy: {
-        createdAt: 'desc'
+        createdAt: "desc",
       },
       select: {
         id: true,
@@ -62,14 +62,14 @@ export class BlogService {
     });
 
     if (!blog) {
-      throw new NotFoundException('Blog not found');
+      throw new NotFoundException("Blog not found");
     }
 
     const recentPosts = await this.getRecentPosts(5);
 
-    return { 
+    return {
       blog,
-      recentPosts: recentPosts.recentPosts
+      recentPosts: recentPosts.recentPosts,
     };
   }
-} 
+}

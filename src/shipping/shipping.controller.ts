@@ -1,23 +1,33 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ShippingService } from './shipping.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { GetUser } from '../auth/get-user.decorator';
-import { JwtPayload } from '../auth/jwt-payload.interface';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from "@nestjs/common";
+import { ShippingService } from "./shipping.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { GetUser } from "../auth/get-user.decorator";
+import { JwtPayload } from "../auth/jwt-payload.interface";
 
-@Controller('shipping')
+@Controller("shipping")
 @UseGuards(JwtAuthGuard)
 export class ShippingController {
   constructor(private readonly shippingService: ShippingService) {}
 
-  @Get('address')
+  @Get("address")
   getAddress(@GetUser() user: JwtPayload) {
     return this.shippingService.getAddress(user.userId);
   }
 
-  @Post('address')
+  @Post("address")
   addAddress(
     @GetUser() user: JwtPayload,
-    @Body() addressData: {
+    @Body()
+    addressData: {
       name: string;
       phone: string;
       address: string;
@@ -30,11 +40,12 @@ export class ShippingController {
     return this.shippingService.addAddress(user.userId, addressData);
   }
 
-  @Put('address/:id')
+  @Put("address/:id")
   updateAddress(
     @GetUser() user: JwtPayload,
-    @Param('id') id: number,
-    @Body() addressData: {
+    @Param("id") id: number,
+    @Body()
+    addressData: {
       name?: string;
       phone?: string;
       address?: string;
@@ -47,8 +58,8 @@ export class ShippingController {
     return this.shippingService.updateAddress(user.userId, id, addressData);
   }
 
-  @Delete('address/:id')
-  deleteAddress(@GetUser() user: JwtPayload, @Param('id') id: number) {
+  @Delete("address/:id")
+  deleteAddress(@GetUser() user: JwtPayload, @Param("id") id: number) {
     return this.shippingService.deleteAddress(user.userId, id);
   }
-} 
+}

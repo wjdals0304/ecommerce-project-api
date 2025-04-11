@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, Warranty } from '@prisma/client';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { Prisma, Warranty } from "@prisma/client";
 
 @Injectable()
 export class ShopService {
@@ -12,10 +12,10 @@ export class ShopService {
     priceMax?: number,
     warranty?: string,
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
   ) {
     const skip = (page - 1) * pageSize;
-        
+
     const whereCondition: any = {};
 
     if (priceMin !== undefined || priceMax !== undefined) {
@@ -29,12 +29,12 @@ export class ShopService {
       whereCondition.categoryId = categoryId;
     }
 
-    if (warranty && warranty !== 'ALL') {
+    if (warranty && warranty !== "ALL") {
       whereCondition.warranty = warranty as Warranty;
     }
 
     const totalItems = await this.prisma.product.count({
-      where: whereCondition
+      where: whereCondition,
     });
 
     const totalPages = Math.ceil(totalItems / pageSize);
@@ -55,7 +55,7 @@ export class ShopService {
 
     const categories = await this.prisma.category.findMany({
       orderBy: {
-        id: 'asc',
+        id: "asc",
       },
       select: {
         id: true,
@@ -63,10 +63,10 @@ export class ShopService {
       },
     });
 
-    return { 
-      products, 
+    return {
+      products,
       categories,
-      totalPages
+      totalPages,
     };
   }
 
@@ -89,87 +89,86 @@ export class ShopService {
     });
 
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException("Product not found");
     }
 
     // 제품 설명 데이터 조회
     const descriptions = await this.prisma.product_descriptions.findMany({
       where: {
-        product_id: id
+        product_id: id,
       },
       select: {
         id: true,
         feature: true,
-      }
+      },
     });
 
     const specifications = await this.prisma.product_specifications.findMany({
       where: {
-        product_id: id
+        product_id: id,
       },
       select: {
         id: true,
         attribute: true,
         value: true,
-      }
+      },
     });
 
     // 리뷰 카운트 조회
     const reviewCount = await this.prisma.product_reviews.count({
       where: {
-        product_id: id
-      }
+        product_id: id,
+      },
     });
 
     return {
       product: {
         ...product,
-        reviewCount 
+        reviewCount,
       },
       specifications,
-      descriptions
+      descriptions,
     };
   }
 
   async getProductReviews(id: number) {
-    
     try {
       const reviews = await this.prisma.product_reviews.findMany({
         where: {
-        product_id: id
-      },
-      select: {
-        id: true,
-        user_name: true,
-        rating: true,
-        comment: true,
-        created_at: true,
-      },
-      orderBy: {
-        created_at: 'desc'  
-      }
-    });
+          product_id: id,
+        },
+        select: {
+          id: true,
+          user_name: true,
+          rating: true,
+          comment: true,
+          created_at: true,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
 
-    return {
-      reviews
+      return {
+        reviews,
       };
     } catch (error) {
-      console.error('Error in getProductReviews:', error);
-      throw new NotFoundException('Product not found');
+      console.error("Error in getProductReviews:", error);
+      throw new NotFoundException("Product not found");
     }
   }
 
   async searchProducts(
     keyword: string,
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
   ) {
     const skip = (page - 1) * pageSize;
     const whereCondition: Prisma.productWhereInput = {
       name: {
         contains: keyword,
         mode: Prisma.QueryMode.insensitive,
-      }
+      },
     };
 
     // 전체 검색 결과 수 조회
@@ -194,13 +193,13 @@ export class ShopService {
         description: true,
       },
       orderBy: {
-        soldCount: 'desc',
+        soldCount: "desc",
       },
     });
 
     return {
       products,
-      totalPages
+      totalPages,
     };
   }
 }
