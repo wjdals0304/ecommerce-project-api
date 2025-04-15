@@ -218,6 +218,10 @@ export class AuthService {
 
       res.setHeader("Access-Control-Expose-Headers", "Authorization");
       res.setHeader("Authorization", `Bearer ${newAccessToken}`);
+      res.setHeader(
+        "set-cookie",
+        `jwt=${newAccessToken}; HttpOnly; Path=/; Max-Age=604800;${process.env.NODE_ENV === "production" ? " Secure; SameSite=None;" : ""}`,
+      );
 
       return res.status(HttpStatus.OK).json({
         accessToken: newAccessToken,
@@ -259,11 +263,17 @@ export class AuthService {
 
       return user;
     } catch (error) {
-      if (error.name === "JsonWebTokenError") {
+      if (
+        error.name === "JsonWebTokenError" ||
+        error.name === "TokenExpiredError"
+      ) {
         throw new HttpException("Invalid token", HttpStatus.UNAUTHORIZED);
       }
       if (error.status === HttpStatus.NOT_FOUND) {
         throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+      }
+      if (error.status === HttpStatus.UNAUTHORIZED) {
+        throw new HttpException("Invalid token", HttpStatus.UNAUTHORIZED);
       }
       throw new HttpException(
         "Database error",
